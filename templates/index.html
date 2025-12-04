@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralNote | The Verse</title>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP FOR ANIMATION -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'verse-bg': '#0f172a',
+                        'verse-blue': '#3b82f6',
+                        'verse-yellow': '#facc15',
+                        'verse-dark': '#020617',
+                        'verse-ink': '#1e293b',
+                    },
+                    fontFamily: {
+                        'comic': ['Bangers', 'cursive'],
+                        'tech': ['Rajdhani', 'sans-serif'],
+                        'body': ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'hard': '8px 8px 0px 0px rgba(0,0,0,1)',
+                        'hard-sm': '4px 4px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0f172a; color: white; overflow-x: hidden; }
+        .bg-comic-texture {
+            background-image: radial-gradient(#1e293b 15%, transparent 16%), radial-gradient(#1e293b 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px; opacity: 0.3;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+        }
+        .blob { position: fixed; filter: blur(80px); z-index: -1; opacity: 0.4; animation: float 10s infinite ease-in-out; }
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -50px) rotate(10deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .masonry-grid { column-count: 1; column-gap: 1.5rem; }
+        @media (min-width: 640px) { .masonry-grid { column-count: 2; } }
+        @media (min-width: 1024px) { .masonry-grid { column-count: 3; } }
+        .comic-card { break-inside: avoid; margin-bottom: 1.5rem; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; transform-style: preserve-3d; }
+        .comic-card:hover { z-index: 10; transform: scale(1.02) rotate(0deg) !important; }
+        .clip-corner { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); }
+        .glitch-text:hover { animation: glitch 0.3s both infinite; color: #facc15; }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 100% { transform: translate(0); } }
+    </style>
+</head>
+<body class="antialiased min-h-screen">
+
+    <div class="bg-comic-texture"></div>
+    <div class="blob bg-blue-600 w-96 h-96 rounded-full top-0 left-0"></div>
+    <div class="blob bg-yellow-500 w-80 h-80 rounded-full bottom-0 right-0" style="animation-delay: -5s;"></div>
+
+    <div class="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+            <div class="relative group cursor-pointer">
+                <h1 class="text-6xl md:text-8xl font-comic tracking-wider text-white relative z-10 glitch-text transition-colors">
+                    NEURAL<span class="text-verse-blue">NOTE</span>
+                </h1>
+                <div class="absolute top-1 left-1 md:top-2 md:left-2 text-6xl md:text-8xl font-comic tracking-wider text-verse-yellow -z-10 select-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    NEURALNOTE
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 bg-verse-dark/80 backdrop-blur-md border-2 border-verse-blue p-2 rounded-lg shadow-hard transform -rotate-2 hover:rotate-0 transition-transform duration-300">
+                <div class="flex flex-col items-center px-4 border-r border-verse-blue/30">
+                    <span class="text-xs font-tech text-verse-blue tracking-[0.2em]">STREAK</span>
+                    <div class="flex items-center gap-1">
+                        <i data-lucide="flame" class="text-verse-yellow fill-verse-yellow animate-pulse"></i>
+                        <span class="text-3xl font-comic text-white">12</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center px-4">
+                    <span class="text-xs font-tech text-verse-blue tracking-[0.2em]">TOTAL</span>
+                    <span class="text-3xl font-comic text-white">{{ newts|length }}</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search -->
+        <div class="mb-10 flex justify-end">
+            <div class="relative group w-full max-w-md">
+                <div class="absolute -inset-1 bg-gradient-to-r from-verse-blue to-verse-yellow rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                <div class="relative flex items-center bg-verse-dark border-2 border-white/10 rounded-lg overflow-hidden shadow-hard-sm">
+                    <div class="pl-4 text-verse-blue"><i data-lucide="search"></i></div>
+                    <input type="text" id="search-bar" placeholder="SEARCH THE ARCHIVE..." class="w-full bg-transparent border-none text-white font-tech text-xl p-3 focus:outline-none placeholder-gray-600">
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <!-- Pinned Section -->
+            <div id="pinned-wrapper" class="mb-12">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="pin" class="text-verse-yellow rotate-45"></i>
+                    <h2 class="text-2xl font-comic text-verse-yellow tracking-widest uppercase">High Priority</h2>
+                    <div class="h-1 flex-grow bg-verse-yellow/20 rounded-full ml-4"></div>
+                </div>
+                <div id="pinned-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for newt in newts %}
+                    {% if newt.is_pinned %}
+                    <!-- Pinned Card -->
+                    <div class="comic-card bg-verse-ink border-2 border-verse-yellow shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] p-6 rounded-lg relative overflow-hidden group" style="transform: rotate(-1.5deg);" data-id="{{ newt.id }}">
+                        <div class="absolute -right-8 top-4 bg-verse-yellow text-black font-bold font-tech text-xs py-1 px-10 rotate-45 border border-black z-20">
+                            PRIORITY
+                        </div>
+                        <div class="relative z-10">
+                            <h3 class="note-title text-2xl font-comic text-white mb-2 leading-none group-hover:text-verse-blue transition-colors">{{newt.title}}</h3>
+                            <p class="note-content text-gray-400 font-body text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">{{newt.content}}</p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-dashed border-gray-700 flex justify-end gap-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                             <!-- View Button -->
+                             <button onclick="viewCard(this)" class="p-2 hover:bg-verse-blue hover:text-white rounded transition-colors text-gray-500" title="View Full"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                             <!-- Pin Toggle Button -->
+                             <a href="toggle_pin/{{newt.id}}" class="p-2 hover:bg-verse-yellow hover:text-black rounded transition-colors text-verse-yellow" title="Unpin"><i data-lucide="pin-off" class="w-4 h-4"></i></a>
+                             <!-- Edit Button -->
+                             <button onclick="editCard(this)" class="p-2 hover:bg-verse-yellow hover:text-black rounded transition-colors text-gray-500" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                             <!-- Delete Button -->
+                             <a href="delete_newt/{{newt.id}}" onclick="return confirm('Delete this newt?')" class="p-2 hover:bg-red-500 hover:text-white rounded transition-colors text-gray-500 flex items-center"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Normal Section -->
+            <div class="flex items-center gap-2 mb-6">
+                <div class="h-3 w-3 bg-verse-blue rotate-45"></div>
+                <h2 class="text-2xl font-comic text-white tracking-widest uppercase">Newts</h2>
+                <div class="h-1 flex-grow bg-verse-blue/20 rounded-full ml-4"></div>
+            </div>
+            
+            <div id="notes-container" class="masonry-grid">
+                {% for newt in newts %}
+                {% if not newt.is_pinned %}
+                <!-- Normal Card -->
+                <div class="comic-card bg-verse-ink border-2 border-verse-blue shadow-hard p-6 rounded-lg mb-6 relative overflow-hidden group" style="transform: rotate(1.2deg);" data-id="{{ newt.id }}">
+                    <div class="relative z-10">
+                        <h3 class="note-title text-2xl font-comic text-white mb-2 leading-none group-hover:text-verse-blue transition-colors">{{newt.title}}</h3>
+                        <p class="note-content text-gray-400 font-body text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">{{newt.content}}</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-dashed border-gray-700 flex justify-end gap-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <!-- View Button -->
+                        <button onclick="viewCard(this)" class="p-2 hover:bg-verse-blue hover:text-white rounded transition-colors text-gray-500" title="View Full"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                        <!-- Pin Toggle Button -->
+                        <a href="toggle_pin/{{newt.id}}" class="p-2 hover:bg-verse-blue hover:text-white rounded transition-colors text-gray-500" title="Pin"><i data-lucide="pin" class="w-4 h-4"></i></a>
+                        <!-- Edit Button -->
+                        <button onclick="editCard(this)" class="p-2 hover:bg-verse-yellow hover:text-black rounded transition-colors text-gray-500" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <!-- Delete Button -->
+                        <a href="delete_newt/{{newt.id}}" onclick="return confirm('Delete this newt?')" class="p-2 hover:bg-red-500 hover:text-white rounded transition-colors text-gray-500 flex items-center"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Floating Action Button (Create) -->
+    <button onclick="initNewEntry()" class="fixed bottom-8 right-8 w-16 h-16 bg-verse-yellow border-2 border-black rounded-full flex items-center justify-center shadow-hard hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all z-50 group">
+        <i data-lucide="plus" class="text-black h-8 w-8 group-hover:rotate-90 transition-transform duration-300"></i>
+    </button>
+
+    <!-- 1. CREATE MODAL -->
+    <div id="create-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-verse-dark/90 backdrop-blur-sm" onclick="closeModal('create-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+            <div class="bg-verse-ink border-4 border-verse-blue shadow-[0_0_50px_rgba(59,130,246,0.3)] clip-corner p-1 relative overflow-hidden">
+                <div class="bg-verse-dark p-8 clip-corner h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 class="text-4xl font-comic text-white">NEW NEWT</h2>
+                        <button onclick="closeModal('create-modal')" class="text-gray-500 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+                    </div>
+                    <!-- Create Action -->
+                    <form action="create_newt" method="post">
+                        {% csrf_token %}
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block font-tech text-verse-blue text-sm mb-1 tracking-widest">Title</label>
+                                <input name="title" type="text" class="w-full bg-verse-ink/50 border-b-2 border-gray-700 focus:border-verse-yellow text-white text-2xl font-bold font-tech p-3 focus:outline-none transition-colors" placeholder="ENTER TITLE...">
+                            </div>
+                            <div>
+                                <label class="block font-tech text-verse-blue text-sm mb-1 tracking-widest">Content</label>
+                                <textarea name="content" rows="6" class="w-full bg-verse-ink/50 border-2 border-transparent focus:border-verse-blue text-gray-300 font-body p-4 rounded-lg focus:outline-none resize-none" placeholder="Start typing..."></textarea>
+                            </div>
+                            <div class="flex justify-end gap-4 mt-8">
+                                <button type="button" onclick="closeModal('create-modal')" class="font-tech text-gray-400 hover:text-white px-6 py-2 uppercase tracking-wider">Cancel</button>
+                                <button type="submit" class="bg-verse-blue text-white font-comic text-xl px-8 py-3 border-2 border-white shadow-hard-sm hover:translate-y-1 hover:shadow-none hover:bg-blue-600 transition-all uppercase">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. EDIT MODAL (Separate Form) -->
+    <div id="edit-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-verse-dark/90 backdrop-blur-sm" onclick="closeModal('edit-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4">
+            <div class="bg-verse-ink border-4 border-verse-yellow shadow-[0_0_50px_rgba(250,204,21,0.3)] clip-corner p-1 relative overflow-hidden">
+                <div class="bg-verse-dark p-8 clip-corner h-full">
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 class="text-4xl font-comic text-verse-yellow">UPDATE NEWT</h2>
+                        <button onclick="closeModal('edit-modal')" class="text-gray-500 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+                    </div>
+                    <!-- Form Action is set via JS -->
+                    <form id="edit-form" action="update_newt" method="post">
+                        {% csrf_token %}
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block font-tech text-verse-yellow text-sm mb-1 tracking-widest">Title</label>
+                                <input name="title" id="edit-title" type="text" class="w-full bg-verse-ink/50 border-b-2 border-gray-700 focus:border-verse-yellow text-white text-2xl font-bold font-tech p-3 focus:outline-none transition-colors">
+                            </div>
+                            <div>
+                                <label class="block font-tech text-verse-yellow text-sm mb-1 tracking-widest">Content</label>
+                                <textarea name="content" id="edit-content" rows="6" class="w-full bg-verse-ink/50 border-2 border-transparent focus:border-verse-yellow text-gray-300 font-body p-4 rounded-lg focus:outline-none resize-none"></textarea>
+                            </div>
+                            <div class="flex justify-end gap-4 mt-8">
+                                <button type="button" onclick="closeModal('edit-modal')" class="font-tech text-gray-400 hover:text-white px-6 py-2 uppercase tracking-wider">Cancel</button>
+                                <button type="submit" class="bg-verse-yellow text-black font-comic text-xl px-8 py-3 border-2 border-black shadow-hard-sm hover:translate-y-1 hover:shadow-none hover:bg-yellow-400 transition-all uppercase">Update</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. VIEW MODAL (Read Only) -->
+    <div id="view-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-verse-dark/90 backdrop-blur-sm" onclick="closeModal('view-modal')"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl px-4">
+            <div class="bg-verse-ink border-2 border-white/20 shadow-hard clip-corner p-1 relative overflow-hidden">
+                <!-- Data Log Aesthetic -->
+                <div class="absolute top-0 right-0 p-2 opacity-50 font-tech text-xs text-verse-blue tracking-widest">READ_ONLY_MODE // SECURE_VIEW</div>
+                
+                <div class="bg-verse-dark p-8 clip-corner h-full max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-start mb-8 border-b border-gray-800 pb-4">
+                        <h2 id="view-title" class="text-4xl md:text-5xl font-comic text-verse-blue"></h2>
+                        <button onclick="closeModal('view-modal')" class="text-gray-500 hover:text-white transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+                    </div>
+                    
+                    <div class="prose prose-invert max-w-none">
+                        <p id="view-content" class="text-gray-300 font-body text-lg leading-loose whitespace-pre-wrap"></p>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-dashed border-gray-800 flex justify-between items-center">
+                        <span class="font-tech text-gray-600 text-sm">END OF DATA STREAM</span>
+                        <button onclick="closeModal('view-modal')" class="font-tech text-verse-blue hover:text-white uppercase tracking-wider text-sm">Close Log</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // --- ANIMATIONS ---
+        window.onload = function() {
+            gsap.from(".comic-card", {
+                y: 50, opacity: 0, duration: 0.6, stagger: 0.1, ease: "back.out(1.7)"
+            });
+        };
+
+        // --- HELPER TO OPEN MODALS ---
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            gsap.fromTo(modal.querySelector('.clip-corner').parentNode, 
+                { scale: 0.8, opacity: 0 },
+                { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.2)" }
+            );
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            gsap.to(modal.querySelector('.clip-corner').parentNode, {
+                scale: 0.8, opacity: 0, duration: 0.2, 
+                onComplete: () => modal.classList.add('hidden')
+            });
+        }
+
+        // --- 1. CREATE LOGIC ---
+        function initNewEntry() {
+            openModal('create-modal');
+        }
+
+        // --- 2. EDIT LOGIC (Updates Form Action Dynamically) ---
+        function editCard(btnElement) {
+            const card = btnElement.closest('.comic-card');
+            
+            // 1. Get Data from HTML
+            const id = card.getAttribute('data-id');
+            const title = card.querySelector('.note-title').innerText;
+            const content = card.querySelector('.note-content').innerText;
+            
+            // 2. Populate Edit Form
+            document.getElementById('edit-title').value = title;
+            document.getElementById('edit-content').value = content;
+            
+            // 3. Set Action URL to your Django Update View
+            // IMPORTANT: Ensure you have a path like 'update_newt/<int:id>' in your urls.py
+            const form = document.getElementById('edit-form');
+            form.action = `update_newt/${id}`; 
+            
+            // 4. Open Modal
+            openModal('edit-modal');
+        }
+
+        // --- 3. VIEW LOGIC (Read Only) ---
+        function viewCard(btnElement) {
+            const card = btnElement.closest('.comic-card');
+            const title = card.querySelector('.note-title').innerText;
+            const content = card.querySelector('.note-content').innerText;
+
+            document.getElementById('view-title').innerText = title;
+            document.getElementById('view-content').innerText = content;
+
+            openModal('view-modal');
+        }
+    </script>
+</body>
+</html>
