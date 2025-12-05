@@ -105,7 +105,10 @@
                 <div class="absolute -inset-1 bg-gradient-to-r from-verse-blue to-verse-yellow rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
                 <div class="relative flex items-center bg-verse-dark border-2 border-white/10 rounded-lg overflow-hidden shadow-hard-sm">
                     <div class="pl-4 text-verse-blue"><i data-lucide="search"></i></div>
-                    <input type="text" id="search-bar" placeholder="SEARCH THE NEWTS..." class="w-full bg-transparent border-none text-white font-tech text-xl p-3 focus:outline-none placeholder-gray-600">
+                    <form action="search" method="post">
+                     {% csrf_token %}   
+                    <input name="searchword"   type="text" id="search-bar" placeholder="SEARCH THE NEWTS..." class="w-full bg-transparent border-none text-white font-tech text-xl p-3 focus:outline-none placeholder-gray-600">
+                    </form>
                 </div>
             </div>
         </div>
@@ -119,6 +122,36 @@
                     <div class="h-1 flex-grow bg-verse-yellow/20 rounded-full ml-4"></div>
                 </div>
                 <div id="pinned-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    {% if result%}
+                    {% for newt in result %}
+
+                    {% if newt.is_pinned %}
+                    <!-- Pinned Card -->
+                    <div class="comic-card bg-verse-ink border-2 border-verse-yellow shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] p-6 rounded-lg relative overflow-hidden group" style="transform: rotate(-1.5deg);" data-id="{{ newt.id }}">
+                        <div class="absolute -right-8 top-4 bg-verse-yellow text-black font-bold font-tech text-xs py-1 px-10 rotate-45 border border-black z-20">
+                            PRIORITY
+                        </div>
+                        <div class="relative z-10">
+                            <h3 class="note-title text-2xl font-comic text-white mb-2 leading-none group-hover:text-verse-blue transition-colors">{{newt.title}}</h3>
+                            <p class="note-content text-gray-400 font-body text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">{{newt.content}}</p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-dashed border-gray-700 flex justify-end gap-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                             <!-- View Button -->
+                             <button onclick="viewCard(this)" class="p-2 hover:bg-verse-blue hover:text-white rounded transition-colors text-gray-500" title="View Full"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                             <!-- Pin Toggle Button -->
+                             <a href="toggle_pin/{{newt.id}}" class="p-2 hover:bg-verse-yellow hover:text-black rounded transition-colors text-verse-yellow" title="Unpin"><i data-lucide="pin-off" class="w-4 h-4"></i></a>
+                             <!-- Edit Button -->
+                             <button onclick="editCard(this)" class="p-2 hover:bg-verse-yellow hover:text-black rounded transition-colors text-gray-500" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                             <!-- Delete Button -->
+                             <a href="delete_newt/{{newt.id}}" onclick="return confirm('Delete this newt?')" class="p-2 hover:bg-red-500 hover:text-white rounded transition-colors text-gray-500 flex items-center"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+
+                    {%else%}
                     {% for newt in newts %}
                     {% if newt.is_pinned %}
                     <!-- Pinned Card -->
@@ -143,6 +176,7 @@
                     </div>
                     {% endif %}
                     {% endfor %}
+                    {% endif %}
                 </div>
             </div>
 

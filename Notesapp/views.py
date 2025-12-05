@@ -45,4 +45,16 @@ def toggle_pin(request, pk):
 
     return redirect('/')
 
+def search(request):
+    newts = Note.objects.all()
+    if request.method == 'POST':
+        searchword = request.POST.get('searchword')
+
+        result = Note.objects.filter(title__icontains = searchword)
+        print(result)
+    else:
+        pass
+
+
+    return render(request, 'index.html', {'result':result})
 
