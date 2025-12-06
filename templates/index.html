@@ -89,7 +89,7 @@
                     <span class="text-xs font-tech text-verse-blue tracking-[0.2em]">STREAK</span>
                     <div class="flex items-center gap-1">
                         <i data-lucide="flame" class="text-verse-yellow fill-verse-yellow animate-pulse"></i>
-                        <span class="text-3xl font-comic text-white">12</span>
+                        <span class="text-3xl font-comic text-white">{{streak_number}}</span>
                     </div>
                 </div>
                 <div class="flex flex-col items-center px-4">
@@ -188,6 +188,31 @@
             </div>
             
             <div id="notes-container" class="masonry-grid">
+                {%if result%}
+                {% for newt in result %}
+                {% if not newt.is_pinned %}
+                <!-- Normal Card -->
+                <div class="comic-card bg-verse-ink border-2 border-verse-blue shadow-hard p-6 rounded-lg mb-6 relative overflow-hidden group" style="transform: rotate(1.2deg);" data-id="{{ newt.id }}">
+                    <div class="relative z-10">
+                        <h3 class="note-title text-2xl font-comic text-white mb-2 leading-none group-hover:text-verse-blue transition-colors">{{newt.title}}</h3>
+                        <p class="note-content text-gray-400 font-body text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">{{newt.content}}</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-dashed border-gray-700 flex justify-end gap-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <!-- View Button -->
+                        <button onclick="viewCard(this)" class="p-2 hover:bg-verse-blue hover:text-white rounded transition-colors text-gray-500" title="View Full"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                        <!-- Pin Toggle Button -->
+                        <a href="toggle_pin/{{newt.id}}" class="p-2 hover:bg-verse-blue hover:text-white rounded transition-colors text-gray-500" title="Pin"><i data-lucide="pin" class="w-4 h-4"></i></a>
+                        <!-- Edit Button -->
+                        <button onclick="editCard(this)" class="p-2 hover:bg-verse-yellow hover:text-black rounded transition-colors text-gray-500" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <!-- Delete Button -->
+                        <a href="delete_newt/{{newt.id}}" onclick="return confirm('Delete this newt?')" class="p-2 hover:bg-red-500 hover:text-white rounded transition-colors text-gray-500 flex items-center"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                {%else%}
+
                 {% for newt in newts %}
                 {% if not newt.is_pinned %}
                 <!-- Normal Card -->
@@ -209,6 +234,7 @@
                 </div>
                 {% endif %}
                 {% endfor %}
+                {%endif%}
             </div>
         </main>
     </div>

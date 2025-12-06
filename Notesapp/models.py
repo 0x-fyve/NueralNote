@@ -7,6 +7,8 @@ class Note(models.Model):
     content = models.CharField()
     is_pinned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now=True)
+
+    owner_session_id = models.CharField(max_length=100, null=True, blank=True)
     
     def __str__(self):
         return self.title
